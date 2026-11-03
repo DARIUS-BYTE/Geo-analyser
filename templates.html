@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SEO & AI Visibility Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 40px; background: #f8f9fa; color: #333; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { padding: 10px; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .chart-container { margin-top: 30px; position: relative; height: 400px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SEO & AI Search Visibility Tool</h1>
+        <p>Track organic rank positioning alongside Google AI Overviews and Copilot inclusions.</p>
+        
+        <div class="form-group">
+            <label for="keyword">Target Keyword:</label>
+            <input type="text" id="keyword" placeholder="e.g. cloud security platform">
+        </div>
+        <div class="form-group">
+            <label for="brand">Brand Name:</label>
+            <input type="text" id="brand" placeholder="e.g. SecureCloud">
+        </div>
+        <button onclick="runTracker()">Run Pipeline</button>
+
+        <div class="chart-container">
+            <canvas id="visibilityChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let myChart;
+
+        async function loadData() {
+            const response = await fetch('/api/data');
+            const data = await response.json();
+            
+            const labels = data.map(d => `${d.keyword} (${d.brand})`);
+            const ranks = data.map(d => d.rank);
+            const aiPresence = data.map(d => d.ai_present ? 1 : 0);
+
+            const ctx = document.getElementById('visibilityChart').getContext('2d');
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Organic Rank (Lower is better)',
+                            data: ranks,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'AI Overview Presence (1=Yes, 0=No)',
+                            data: aiPresence,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            type: 'line'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        async function runTracker() {
+            const keyword = document.getElementById('keyword').value;
+            const brand = document.getElementById('brand').value;
+
+            if (!keyword || !brand) {
+                alert('Please enter both keyword and brand name.');
+                return;
+            }
+
+            const res = await fetch('/api/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyword, brand })
+            });
+            const result = await res.json();
+            alert(`Pipeline executed! Rank: ${result.rank} | AI Overview Present: ${result.ai_present} | Visibility Score: ${result.visibility_score}`);
+            loadData();
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
