@@ -1,4 +1,4 @@
-# ai-enhanced_seo-visibility-analyser
+# Geo-analyser
  Built an SEO analytics tool to track brand visibility across both traditional SERPs and AI-powered search features
 
 (Google AI Overviews, Bing Copilot).
